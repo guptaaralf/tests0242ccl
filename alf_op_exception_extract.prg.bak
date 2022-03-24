@@ -1,0 +1,47 @@
+/*-------------------------------------------------------------------------------------------------------------------
+ 
+Module 				: ALF_OP_EXCEPTION_EXTRACT
+Program Run From 	: OPS SCHEDULER
+ 
+---------------------------------------------------------------------------------------------------------------------
+DESCRIPTION 		:  CCL TO EXECUTE ALF_OP_TASK_EXCEPTION_EXTRACT.PRG AND THEN SEND IT TO RECIPIENTS VIA EMAIL
+---------------------------------------------------------------------------------------------------------------------
+Owner 				: Alfred Health
+					  Commercial Road, Melbourne
+					  Victoria, 3004
+	 				  Australia
+---------------------------------------------------------------------------------------------------------------------
+Modification Control Log
+---------------------------------------------------------------------------------------------------------------------
+		Mod # 	Author 						Date 			Description
+		----- 	----------------------- 	--------------- -----------------------------------
+		000		NEHA NAROTA					24-OCT-2017		INITIAL RELEASE
+ 
+---------------------------------------------------------------------------------------------------------------------*/
+ 
+ 
+drop program alf_op_exception_extract go
+create program alf_op_exception_extract
+ 
+/*------ CALL TO EXECUTE - ALF_OP_TASK_EXCEPTION_EXTRACT ------
+		 THIS WILL CREATE THE CSV FILE IN CUST_EXTRACTS:		*/
+ 
+execute ALF_OP_TASK_EXCEPTION_EXTRACT "File" ;$1
+ 
+CALL PAUSE (2)
+ 
+/*------ CALL THE SHELL SCRIPT TO SEND THE CSV FILE AS AN ATTACHEMENT ------
+		 TO THE INTENDED RECIPIENTS											*/
+ 
+declare dclcom = vc with noconstant("")
+ 
+set dclcom = concat("$cust_proc/alf_op_overdue_tasks.ksh ")
+set status = 0
+set len = size(trim(dclcom))
+ 
+call echo(dclcom)
+call dcl(dclcom, len, status)
+ 
+end
+go
+ 

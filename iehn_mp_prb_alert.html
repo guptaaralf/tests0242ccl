@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Alert</title>
+        <meta charset="windows-1252">
+        <META content="XMLCCLREQUEST,APPLINK,MPAGES_EVENT" name="discern"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-weight:inherit;font-style:inherit;font-size:100%;vertical-align:baseline}
+:focus{outline:0}
+body{color:#000;background:#FFF;font:normal 12px/1.5em Tahoma,Geneva,Verdana,Trebuchet MS,sans-serif;text-align:left;width:100%}
+ol,ul{list-style:none;text-align:left}
+ 
+body {overflow:hidden;}
+#demo-main{
+    height:57px;
+    padding:0;
+    background:url(I:/Winintel/Static_Content/UnifiedContent/images/demo_banner.png) center;
+    overflow-y:hidden;
+}
+.demo-head{color:#FFF;display:inline;vertical-align:middle;margin:0;padding:10px 20px;font-size:2em;float:left;}
+.demo-itms{color:#FFF;display:inline;vertical-align:middle;list-style-type:none;margin:0;padding:10px;width:20%;float:left;}
+.prob {background:0;margin:5px; margin-top: 20px; border:1px solid #ff3333}
+.prob-head {font-size:14px;line-height:1em;
+            background:#ff3333;
+            display:block;
+            font-weight:bold;
+            padding:7px;
+            color:#fff;}
+.prob-body {padding: 8px;}
+.prob-onset {font-weight:bold;display:inline;}
+.prob-rec {display:inline;color:#999;padding-left: 20px;}
+.prob-comm h1 {font-size: 12px; font-weight:bold;}
+.comm-body {padding-left: 10px;}
+.comm-disp {padding-left:20px;}
+.comm-det {font-style: italic;color:#333;}
+#footer {margin-top:50px;border-top:1px solid #ccc;padding: 20px;}
+#footer h1 {font-weight:bold;font-size:12px;}
+#footer li {list-style-type: disc;}
+ 
+ 
+        </style>
+        <script>
+/*global  XMLCclRequest */
+/*global ActiveXObject */
+/*global MPAGES_EVENT */
+/*jslint indent: 4, maxlen: 200, maxerr: 99, browser: true, evil: true, sloppy: true, plusplus: true, browser: true, vars: true */
+/*jshint browser: true, evil: true, jquery: true */
+var iehn = {
+    personId: @PATIENTID:1,
+    problem: '@PROBLEM:2',
+    cclProgram: "iehn_mp_prb_alert",
+    page: {
+        link: [
+            {   title: "Infection Prevention Management of Patients with Multi Resistant Organisms (MROs) Guideline",
+                url: "http://system.prompt.org.au/Download/Document.aspx?id=5903496&code=5E4C3CD01CC99972861C6F4A3D6CFE7B"
+                },
+            {   title: "Standard and Transmission Based Precautions",
+                url: "http://system.prompt.org.au/Download/Document.aspx?id=5903594&code=699ADCC970457607EE20921F9E0C026A"
+                },
+            {   title: "Screening for multi-resistant organisms (MROs) Patient information",
+                url: "http://prompt.baysidehealth.intra:89/Search/download.aspx?filename=17428238\\19620490\\22956791.pdf"
+                }
+        ],
+        error: {},
+        popup: {},
+        data: {}
+    }
+};
+iehn.page.error = function (errTitle, objError) {
+    if (document.getElementById("iehn-page-error")) {
+        document.body.removeChild(document.getElementById("iehn-page-error"));
+    }
+    var errDiv = document.createElement("DIV");
+    errDiv.id = "iehn-page-error";
+    var t = [];
+    t.push('<div id="err-head"><h1>', errTitle, '</h1></div><div id="err-content">');
+    if (typeof objError === "object") {
+        try {
+            var errData = objError.REPLY.STATUS_DATA.SUBEVENTSTATUS[0];
+            var key;
+            t.push('<ul>');
+            for (key in errData) {
+                if (errData.hasOwnProperty(key)) {
+                    t.push('<li>', key, ': ', errData[key], '</li>');
+                }
+            }
+            t.push('</ul>');
+        } catch (err) {
+            t.push(JSON.stringify(objError));
+        }
+    } else {
+        t.push(objError);
+    }
+    t.push('<div>',
+        '<div id="err-ftr"><button onClick="iehn.page.error.hide();">OK</button></div>');
+    errDiv.innerHTML = t.join("");
+    document.body.appendChild(errDiv);
+};
+iehn.page.error.hide = function () {
+    if (document.getElementById("iehn-page-error")) {
+        document.body.removeChild(document.getElementById("iehn-page-error"));
+    }
+};
+iehn.page.reset = function () {
+    while (document.body.firstChild) {
+        document.body.removeChild(document.body.firstChild);
+    }
+};
+iehn.page.noCache = function (tempUrl) {
+    return tempUrl + "&nocache=" + (new Date().getTime());
+};
+iehn.page.loadWithCBParameters = function (url, parameters, callback, refEl) {
+    var xhr = new XMLCclRequest();
+    xhr.onreadystatechange = function () {
+        if (xhr.status === 200) {
+            var resp = xhr.responseText;
+            if (resp.substring(0, 12) === "<!--LOGIN-->") {
+                window.location.href = "/mp_mobile/timeout.html";
+            } else if (resp.substring(0, 8) === "<!--S-->") {
+                callback(resp, refEl);
+            } else if (resp.substring(0, 39) === "<html><body><p>Unable to display report") {
+                iehn.page.error('Report Error', resp);
+            } else if (resp.substring(0, 6) === "<html>") {
+                callback(resp, refEl);
+            } else if (resp.substring(0, 1) === "{") {
+                var retJSON = eval('(' + resp + ')');
+                if (typeof retJSON === "object") {
+                    if (retJSON.REPLY.STATUS_DATA.STATUS === undefined) {
+                        iehn.page.error('No Status Data in loadWithCBParameters', retJSON);
+                    } else if (retJSON.REPLY.STATUS_DATA.STATUS === "F") {
+                        iehn.page.error('CCL Failure in loadWithCBParameters', retJSON);
+                    } else {
+                        iehn.page.data = retJSON;
+                        callback(retJSON, refEl);
+                    }
+                } else {
+                    callback(resp, refEl);
+                }
+            } else {
+                iehn.page.error('Unexpected Response in loadWithCBParameters', resp);
+            }
+        }
+    };
+    xhr.open('GET', url);
+    xhr.send(parameters);
+};
+iehn.page.header = function () {
+    var data = iehn.page.data;
+    if (document.getElementById("demographics")) {
+        document.body.removeChild(document.getElementById("demographics"));
+    }
+    var demoDiv = document.createElement("DIV");
+    demoDiv.id = "demo-main";
+    var t = [];
+    t.push('<h1 class="demo-head">', data.PERSON_NAME, '</h1>',
+            '<ul class="demo-itms">',
+                '<li><span>DOB: </span><span class="demoDob">', data.SBIRTH_DT, '</span></li>',
+                '<li><span>Sex: </span><span class="demoMrn">', data.SEX_DISP, '</span></li>',
+            '</ul>');
+    demoDiv.innerHTML = t.join("");
+    document.body.appendChild(demoDiv);
+};
+iehn.page.footer = function () {
+    if (document.getElementById("footer")) {
+        document.body.removeChild(document.getElementById("footer"));
+    }
+    var newDiv = document.createElement("DIV");
+    newDiv.id = "footer";
+    var t = [], i = 0;
+    t.push("<h1>Resources</h1><ul>");
+    for (i = 0; i < iehn.page.link.length; i++) {
+        t.push('<li><a href="javascript:APPLINK(100, \'', iehn.page.link[i].url, '\',\'\');">', iehn.page.link[i].title, '</a></li>');
+    }
+    t.push("</ul>");
+    newDiv.innerHTML = t.join("");
+    document.body.appendChild(newDiv);
+};
+iehn.page.init = function () {
+    var probs = iehn.problem.replace(" ; ", "','");
+    probs = probs.replace("; ", ",");
+    probs = probs.replace(" ;", ",");
+    probs = "value('" + probs + "')";
+    //;alert(probs);
+    var params = "^MINE^," + iehn.personId + "," + probs;
+    iehn.page.loadWithCBParameters(iehn.cclProgram, params, iehn.page.render, null);
+};
+iehn.page.alertdocs = function () {
+    var data = iehn.page.data;
+    if (data.ALERTS) {
+        if (document.getElementById("alerts")) {
+            document.body.removeChild(document.getElementById("alerts"));
+        }
+        var newDiv = document.createElement("DIV");
+        newDiv.id = "alerts";
+        var t = [], i = 0, oddRow = "odd";
+        if (data.ALERTS.length > 0) {
+            t.push('<h1>Patient Alerts</h1>',
+                '<table>');
+            for (i = 0; i < data.ALERTS.length; i++) {
+                oddRow = i % 2 ? "even" : "odd";
+                t.push('<tr class="', oddRow, '"><td>',
+                    '<a href="#" onclick="iehn.page.opendoc(', data.ALERTS[i].EVENT_ID, ');">',
+                    data.ALERTS[i].EVENT_TITLE_TEXT, '</a></td>',
+                    '<td>', data.ALERTS[i].SEVENT_END_DT_TM, '</td></tr>');
+            }
+            t.push('</table>');
+        }
+        newDiv.innerHTML = t.join("");
+        document.body.appendChild(newDiv);
+    }
+};
+iehn.page.opendoc = function (eventId) {
+    MPAGES_EVENT("CLINICALNOTE",
+        "@PATIENTID:1|@ENCOUNTERID:1|" + eventId + "|Clinical Notes|31|CLINNOTES|341|CLINNOTES|1");
+};
+iehn.page.render = function (response, target) {
+    iehn.page.data = response.REPLY;
+    iehn.page.reset();
+    iehn.page.header();
+    var newDiv = document.createElement("DIV");
+    newDiv.id = "problems";
+    var data = iehn.page.data;
+    var p = 0, c = 0, t = [], curProb, curComm;
+    for (p = 0; p < data.PROBLEM.length; p++) {
+        curProb = data.PROBLEM[p];
+        t.push('<div class="prob">',
+                '<h1 class="prob-head">', curProb.PROBLEM_DISP, '</h1>',
+                '<div class="prob-body">',
+                    '<div class="prob-onset">Onset: ', curProb.SONSET_DT, '</div>',
+                    '<div class="prob-rec">Recorded By: ', curProb.RECORDER_PRSNL, ' (', curProb.SRECORDER_DT, ')</div>');
+        if (curProb.COMMENT.length > 0) {
+            t.push('<div class="prob-comm"><h1>Comments</h1>');
+            for (c = 0; c < curProb.COMMENT.length; c++) {
+                curComm = curProb.COMMENT[c];
+                t.push('<div class="comm-body">',
+                        '<div class="comm-det">', curComm.COMMENT_PRSNL, ' (', curComm.SCOMMENT_DT_TM, ')</div>',
+                        '<div class="comm-disp">', curComm.COMMENT_DISP, '</div>',
+                    '</div>');
+            }
+            t.push('</div>');
+        }
+        t.push('</div></div>');
+    }
+    newDiv.innerHTML = t.join("");
+    document.body.appendChild(newDiv);
+    //iehn.page.alertdocs();
+    iehn.page.footer();
+};
+        </script>
+    </head>
+    <body onLoad="iehn.page.init();" scroll="auto">
+    </body>
+</html>
+ 
